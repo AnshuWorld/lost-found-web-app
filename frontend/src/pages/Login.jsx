@@ -31,9 +31,12 @@ function Login({ setPage, onLoginSuccess }) {
       setPage("home");
     } catch (error) {
       console.log(error);
-      alert("Login failed");
+      alert(error.response?.data?.message || "Login failed");
     }
   };
+
+  const apiBase = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
+  const googleLoginUrl = `${apiBase}/api/auth/google`;
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4">
@@ -78,8 +81,45 @@ function Login({ setPage, onLoginSuccess }) {
           Login
         </button>
 
+        {/* Divider */}
+        <div className="my-4 flex items-center">
+          <hr className="flex-1 border-t border-slate-300" />
+          <span className="mx-2 text-slate-500 text-sm">or</span>
+          <hr className="flex-1 border-t border-slate-300" />
+        </div>
+
+        {/* Google Sign‑In button */}
+        <a
+          href={googleLoginUrl}
+          className="flex items-center justify-center w-full bg-white border border-slate-300 hover:bg-slate-100 text-sm rounded-lg py-2 transition"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 48 48"
+            className="w-5 h-5 mr-2"
+          >
+            <path
+              fill="#EA4335"
+              d="M24 9.5c3.4 0 6.5 1.2 8.9 3.2l6.6-6.6C36.5 2.9 30.7 0 24 0 14.6 0 6.4 5.1 2.2 12.5l7.8 6.1C12.4 13.7 17.7 9.5 24 9.5z"
+            />
+            <path
+              fill="#4285F4"
+              d="M46.5 24c0-1.6-.2-3.2-.5-4.7H24v9h12.8c-.5 3-2.3 5.5-4.9 7.2l7.8 6.1c4.6-4.2 7.2-10.4 7.2-17.6z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M10.9 28.6c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5L3.1 13.5C1.1 17.4 0 21.6 0 26c0 4.4 1.1 8.6 3.1 12.5l7.8-6.1z"
+            />
+            <path
+              fill="#34A853"
+              d="M24 48c6.5 0 12-2.2 16-5.9l-7.8-6.1c-2.2 1.5-5 2.4-8.2 2.4-6.3 0-11.6-4.2-13.5-9.9l-7.8 6.1C6.4 42.9 14.6 48 24 48z"
+            />
+          </svg>
+          Sign in with Google
+        </a>
+
         <p className="text-center text-sm text-slate-500 mt-4">
-          Don&apos;t have an account?{" "}
+          Don&apos;t have an account? 
           <button
             type="button"
             onClick={() => setPage("signup")}

@@ -8,9 +8,16 @@ import ItemForm from "./components/ItemForm";
 function App() {
   const [page, setPage] = useState("home");
   const [editItem, setEditItem] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(() =>
-    Boolean(localStorage.getItem("token"))
-  );
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      localStorage.setItem("token", token);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return true;
+    }
+    return Boolean(localStorage.getItem("token"));
+  });
 
   const handleLogout = () => {
     localStorage.removeItem("token");

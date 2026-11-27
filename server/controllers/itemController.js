@@ -146,18 +146,15 @@ const markAsFound = async (req, res) => {
       return res.status(400).json({ message: 'This item is already marked as found' });
     }
 
-    const { name, email, phone, message } = req.body;
-
-    if (!name || !phone) {
-      return res.status(400).json({ message: 'Name and phone number are required' });
-    }
+    // Use JWT payload (req.user) for finder details
+    const { name, email } = req.user;
 
     item.status = 'found';
     item.foundBy = {
-      name: name.trim(),
+      name: name?.trim() || 'Anonymous',
       email: email?.trim() || '',
-      phone: phone.trim(),
-      message: message?.trim() || '',
+      phone: '', // not collected from Google auth
+      message: '',
       userId: req.user.id,
       foundAt: new Date(),
     };

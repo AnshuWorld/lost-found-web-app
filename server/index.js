@@ -17,6 +17,18 @@ if (!MONGO_URI || !JWT_SECRET) {
 
 const app = express();
 app.use(express.json());
+const session = require('express-session');
+const passport = require('passport');
+require('./config/passport'); // ensure passport strategy is loaded
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'session_secret',
+  resave: false,
+  saveUninitialized: false,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 const corsOrigin = process.env.CORS_ORIGIN;
 app.use(
