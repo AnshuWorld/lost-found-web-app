@@ -16,6 +16,7 @@ if (!MONGO_URI || !JWT_SECRET) {
 }
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(express.json());
 const session = require('express-session');
 const passport = require('passport');
