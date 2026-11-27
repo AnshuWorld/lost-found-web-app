@@ -1,0 +1,20 @@
+{
+  "name": "lost-found-web-app",
+  "version": "1.0.0",
+  "description": "A full-stack Lost and Found web application built using MERN stack technology.",
+  "homepage": "https://github.com/AnshuWorld/lost-found-web-app#readme",
+  "bugs": {
+    "url": "https://github.com/AnshuWorld/lost-found-web-app/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnshuWorld/lost-found-web-app.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

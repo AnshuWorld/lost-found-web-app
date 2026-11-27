@@ -6,37 +6,51 @@ import Signup from "./pages/Signup";
 import ItemForm from "./components/ItemForm";
 
 function App() {
-
   const [page, setPage] = useState("home");
   const [editItem, setEditItem] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(() =>
+    Boolean(localStorage.getItem("token"))
+  );
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    setEditItem(null);
+    setPage("home");
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
+      <Navbar
+        page={page}
+        setPage={setPage}
+        isLoggedIn={isLoggedIn}
+        onLogout={handleLogout}
+        onNewItem={() => setEditItem(null)}
+      />
 
-      <Navbar setPage={setPage} />
+      <main className="flex-1">
+        {page === "home" && (
+          <Home setPage={setPage} setEditItem={setEditItem} />
+        )}
 
-      {page === "home" && (
-        <Home
-          setPage={setPage}
-          setEditItem={setEditItem}
-        />
-      )}
+        {page === "login" && (
+          <Login
+            setPage={setPage}
+            onLoginSuccess={() => setIsLoggedIn(true)}
+          />
+        )}
 
-      {page === "login" && (
-        <Login setPage={setPage} />
-      )}
+        {page === "signup" && <Signup setPage={setPage} />}
 
-      {page === "signup" && (
-        <Signup setPage={setPage} />
-      )}
-
-      {page === "create" && (
-        <ItemForm
-          setPage={setPage}
-          editItem={editItem}
-        />
-      )}
-
+        {page === "create" && (
+          <ItemForm
+            key={editItem?._id || "new"}
+            setPage={setPage}
+            editItem={editItem}
+          />
+        )}
+      </main>
     </div>
   );
 }

@@ -1,109 +1,157 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api";
 import ItemCard from "../components/ItemCard";
 
 function Home({ setPage, setEditItem }) {
-
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState("All");
 
-  const getItems = async () => {
-
+  const fetchItems = async () => {
     try {
-
-      const response = await axios.get(
-        "http://localhost:5000/api/items"
-      );
-
+      const response = await api.get("/api/items");
       setItems(response.data);
-
     } catch (error) {
-
       console.log(error);
-
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    getItems();
+    let active = true;
+    api
+      .get("/api/items")
+      .then((response) => {
+        if (active) {
+          setItems(response.data);
+        }
+      })
+      .catch((error) => console.log(error))
+      .finally(() => {
+        if (active) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const deleteItem = async (id) => {
-
     const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login first");
+      setPage("login");
+      return;
+    }
 
     try {
-
-      await axios.delete(
-        `http://localhost:5000/api/items/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-
-      getItems();
-
+      const response = await api.delete(`/api/items/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data?.message) {
+        alert(response.data.message);
+      }
+      fetchItems();
     } catch (error) {
-
       console.log(error);
-
+      alert(error.response?.data?.message || "Could not delete item");
     }
   };
 
-  const editItem = (item) => {
-
+  const handleEdit = (item) => {
     setEditItem(item);
     setPage("create");
-
   };
 
+  const filteredItems = items.filter((item) => {
+    const matchesType =
+      filterType === "All" ||
+      item.type?.toLowerCase() === filterType.toLowerCase();
+
+    const query = search.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      item.title?.toLowerCase().includes(query) ||
+      item.description?.toLowerCase().includes(query) ||
+      item.location?.toLowerCase().includes(query);
+
+    return matchesType && matchesSearch;
+  });
+
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-
-      <div className="flex justify-between items-center mb-8">
-
-        <h1 className="text-3xl font-bold">
-          Lost & Found Items
-        </h1>
+    <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">
+            Lost &amp; Found Items
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Report lost belongings or help return found items.
+          </p>
+        </div>
 
         <button
+          type="button"
           onClick={() => {
             setEditItem(null);
             setPage("create");
           }}
-          className="bg-blue-600 text-white px-5 py-3 rounded-lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition cursor-pointer self-start sm:self-auto"
         >
           + Add Item
         </button>
-
       </div>
 
-      {items.length === 0 ? (
+      <div className="flex flex-col sm:flex-row gap-3 mb-8">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by title, description, or location..."
+          className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
-        <p className="text-gray-500">
+        <div className="flex gap-2">
+          {["All", "Lost", "Found"].map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => setFilterType(type)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium border transition cursor-pointer ${
+                filterType === type
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-white text-slate-600 border-slate-300 hover:bg-slate-100"
+              }`}
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="text-slate-500 text-center py-12">Loading items...</p>
+      ) : filteredItems.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-xl p-10 text-center text-slate-500">
           No items found.
-        </p>
-
+        </div>
       ) : (
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-          {items.map((item) => (
-
+          {filteredItems.map((item) => (
             <ItemCard
               key={item._id}
               item={item}
-              onEdit={editItem}
+              onEdit={handleEdit}
               onDelete={deleteItem}
             />
-
           ))}
-
         </div>
-
       )}
-
     </div>
   );
 }
