@@ -22,7 +22,11 @@ const corsOrigin = process.env.CORS_ORIGIN;
 app.use(
   cors(
     corsOrigin && corsOrigin !== '*'
-      ? { origin: corsOrigin.split(',').map((origin) => origin.trim()) }
+      ? {
+          origin: corsOrigin
+            .split(',')
+            .map((origin) => origin.trim().replace(/\/+$/, '')),
+        }
       : undefined
   )
 );
