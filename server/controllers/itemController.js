@@ -21,6 +21,7 @@ const createItem = async (req, res) => {
       imageUrl,
       imagePublicId,
       postedBy: req.user.id,
+      status: 'active',
     });
 
     await newItem.save();
@@ -133,4 +134,41 @@ const deleteItem = async (req, res) => {
   }
 };
 
-module.exports = { createItem, getItems, getItemById, updateItem, deleteItem };
+const markAsFound = async (req, res) => {
+  try {
+    const item = await Item.findById(req.params.id);
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    if (item.status === 'found') {
+      return res.status(400).json({ message: 'This item is already marked as found' });
+    }
+
+    const { name, email, phone, message } = req.body;
+
+    if (!name || !phone) {
+      return res.status(400).json({ message: 'Name and phone number are required' });
+    }
+
+    item.status = 'found';
+    item.foundBy = {
+      name: name.trim(),
+      email: email?.trim() || '',
+      phone: phone.trim(),
+      message: message?.trim() || '',
+      userId: req.user.id,
+      foundAt: new Date(),
+    };
+
+    await item.save();
+
+    res.json({ message: 'Item marked as found', item });
+  } catch (error) {
+    console.error('Mark as found error:', error);
+    res.status(500).json({ message: 'Failed to mark item as found' });
+  }
+};
+
+module.exports = { createItem, getItems, getItemById, updateItem, deleteItem, markAsFound };

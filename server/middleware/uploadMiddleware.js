@@ -19,9 +19,6 @@ const upload = multer({
   },
 });
 
-/**
- * Middleware for handling a single optional image upload under the "image" field.
- */
 const uploadSingleImage = (req, res, next) => {
   upload.single('image')(req, res, (err) => {
     if (err) {

@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import api from "../api";
 import ItemCard from "../components/ItemCard";
+import MarkFoundModal from "../components/MarkFoundModal";
 
 function Home({ setPage, setEditItem }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("All");
+  const [markFoundItem, setMarkFoundItem] = useState(null);
 
   const fetchItems = async () => {
     try {
@@ -68,10 +70,20 @@ function Home({ setPage, setEditItem }) {
     setPage("create");
   };
 
+  const handleMarkFoundSuccess = () => {
+    setMarkFoundItem(null);
+    fetchItems();
+  };
+
   const filteredItems = items.filter((item) => {
-    const matchesType =
-      filterType === "All" ||
-      item.type?.toLowerCase() === filterType.toLowerCase();
+    let matchesType = true;
+    if (filterType === "Lost") {
+      matchesType =
+        item.type?.toLowerCase() === "lost" && item.status !== "found";
+    } else if (filterType === "Found") {
+      matchesType =
+        item.type?.toLowerCase() === "found" || item.status === "found";
+    }
 
     const query = search.trim().toLowerCase();
     const matchesSearch =
@@ -82,6 +94,14 @@ function Home({ setPage, setEditItem }) {
 
     return matchesType && matchesSearch;
   });
+
+  const lostActiveCount = items.filter(
+    (i) => i.type?.toLowerCase() === "lost" && i.status !== "found"
+  ).length;
+
+  const foundCount = items.filter(
+    (i) => i.type?.toLowerCase() === "found" || i.status === "found"
+  ).length;
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
@@ -117,18 +137,22 @@ function Home({ setPage, setEditItem }) {
         />
 
         <div className="flex gap-2">
-          {["All", "Lost", "Found"].map((type) => (
+          {[
+            { label: "All", count: items.length },
+            { label: "Lost", count: lostActiveCount },
+            { label: "Found", count: foundCount },
+          ].map(({ label, count }) => (
             <button
-              key={type}
+              key={label}
               type="button"
-              onClick={() => setFilterType(type)}
+              onClick={() => setFilterType(label)}
               className={`px-4 py-2 rounded-lg text-sm font-medium border transition cursor-pointer ${
-                filterType === type
+                filterType === label
                   ? "bg-blue-600 text-white border-blue-600"
                   : "bg-white text-slate-600 border-slate-300 hover:bg-slate-100"
               }`}
             >
-              {type}
+              {label} ({count})
             </button>
           ))}
         </div>
@@ -148,9 +172,18 @@ function Home({ setPage, setEditItem }) {
               item={item}
               onEdit={handleEdit}
               onDelete={deleteItem}
+              onMarkFound={setMarkFoundItem}
             />
           ))}
         </div>
+      )}
+
+      {markFoundItem && (
+        <MarkFoundModal
+          item={markFoundItem}
+          onClose={() => setMarkFoundItem(null)}
+          onSuccess={handleMarkFoundSuccess}
+        />
       )}
     </div>
   );
